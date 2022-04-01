@@ -1,0 +1,45 @@
+// Copyright 2022 The Brave Authors. All rights reserved.
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+import XCTest
+@testable import Client
+
+class DebouncingResourceDownloaderTests: XCTestCase {
+  func testSettingUpDownloaderAndCheckingURLs() throws {
+    // Given
+    // JSON data and a downloader
+    let bundle = Bundle(for: Self.self)
+    let resourceURL = bundle.url(forResource: "debouncing", withExtension: "json")
+    let data = try Data(contentsOf: resourceURL!)
+    let downloader = DebouncingResourceDownloader()
+
+    // When
+    // Setting up downloader
+    // Then
+    // doesn't throw
+    try downloader.setup(withRulesJSON: data)
+
+    // Then
+    // Returns true for deboncing links
+    let extractURL = URL(string: "https://example.com")!
+
+    let testURLs = [
+      // An honest url (that actually exists)
+      URL(string: "https://www.youtube.com/redirect?q=https%3A%2F%2Fexample.com")!,
+      // First entry in a list
+      URL(string: "https://www.leechall.com/redirect.php?url=https%3A%2F%2Fexample.com")!,
+      // Last entry in a list and base64 encoded
+      URL(string: "https://www.pixelshost.com/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
+      // Fixed subdomain
+      URL(string: "https://goto.walmart.com/c/?u=https%3A%2F%2Fexample.com")!,
+      // Middle entry in a list and base64 encoded
+      URL(string: "https://foo.novicearea.com/some-path/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!
+    ]
+
+    for testURL in testURLs {
+      XCTAssertEqual(downloader.redirectURL(for: testURL), extractURL)
+    }
+  }
+}
