@@ -99,6 +99,7 @@ public struct WalletPanelContainerView: View {
             keyringStore: keyringStore,
             cryptoStore: cryptoStore,
             networkStore: cryptoStore.networkStore,
+            accountActivityStore: cryptoStore.accountActivityStore(for: keyringStore.selectedAccount),
             origin: origin,
             presentWalletWithContext: { context in
               self.presentWalletWithContext?(context)
@@ -134,12 +135,18 @@ struct WalletPanelView: View {
   @ObservedObject var keyringStore: KeyringStore
   @ObservedObject var cryptoStore: CryptoStore
   @ObservedObject var networkStore: NetworkStore
+  @ObservedObject var accountActivityStore: AccountActivityStore
   var origin: URL
   var presentWalletWithContext: (PresentingContext) -> Void
   
   @Environment(\.pixelLength) private var pixelLength
   @Environment(\.sizeCategory) private var sizeCategory
   @ScaledMetric private var blockieSize = 54
+  
+  private let currencyFormatter = NumberFormatter().then {
+    $0.numberStyle = .currency
+    $0.currencyCode = "USD"
+  }
   
   private var connectButton: some View {
     Button {
@@ -237,9 +244,10 @@ struct WalletPanelView: View {
             }
           }
           VStack(spacing: 4) {
-            Text("0.31178 ETH")
+            let nativeAsset = accountActivityStore.assets.first(where: { $0.token.symbol == networkStore.selectedChain.symbol })
+            Text(String(format: "%.04f %@", nativeAsset?.decimalBalance ?? 0.0, networkStore.selectedChain.symbol))
               .font(.title2.weight(.bold))
-            Text("$872.48")
+            Text(currencyFormatter.string(from: NSNumber(value: (Double(nativeAsset?.price ?? "") ?? 0) * (nativeAsset?.decimalBalance ?? 0.0))) ?? "")
               .font(.callout)
           }
           .padding(.vertical)
@@ -288,6 +296,7 @@ struct WalletPanelView: View {
       } else {
         cryptoStore.fetchPendingRequests()
       }
+      accountActivityStore.update()
     }
   }
 }
@@ -300,6 +309,7 @@ struct WalletPanelView_Previews: PreviewProvider {
         keyringStore: .previewStoreWithWalletCreated,
         cryptoStore: .previewStore,
         networkStore: .previewStore,
+        accountActivityStore: .previewStore,
         origin: URL(string: "https://app.uniswap.org")!,
         presentWalletWithContext: { _ in }
       )
@@ -307,6 +317,7 @@ struct WalletPanelView_Previews: PreviewProvider {
         keyringStore: .previewStore,
         cryptoStore: .previewStore,
         networkStore: .previewStore,
+        accountActivityStore: .previewStore,
         origin: URL(string: "https://app.uniswap.org")!,
         presentWalletWithContext: { _ in }
       )
@@ -318,6 +329,7 @@ struct WalletPanelView_Previews: PreviewProvider {
         }(),
         cryptoStore: .previewStore,
         networkStore: .previewStore,
+        accountActivityStore: .previewStore,
         origin: URL(string: "https://app.uniswap.org")!,
         presentWalletWithContext: { _ in }
       )
