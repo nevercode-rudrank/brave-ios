@@ -6,16 +6,19 @@
 import Foundation
 import UIKit
 import SwiftUI
+import Combine
 
 /// Displays a summary of the users wallet when they are visiting a webpage that wants to connect with the
 /// users wallet
 public class WalletPanelHostingController: UIHostingController<WalletPanelContainerView> {
 
   public weak var delegate: BraveWalletDelegate?
+  private var cancellable: AnyCancellable?
 
   public init(
     walletStore: WalletStore,
-    origin: URL
+    origin: URL,
+    onUnlock: (() -> Void)? = nil
   ) {
     gesture = WalletInteractionGestureRecognizer(
       keyringStore: walletStore.keyringStore
@@ -31,6 +34,17 @@ public class WalletPanelHostingController: UIHostingController<WalletPanelContai
       walletHostingController.delegate = self.delegate
       self.present(walletHostingController, animated: true)
     }
+    
+    cancellable = walletStore.keyringStore.$keyring
+      .dropFirst() // Drop initial value
+      .map(\.isLocked)
+      .removeDuplicates()
+      .dropFirst() // Drop first async fetch of keyring
+      .sink { isLocked in
+        if !isLocked {
+          onUnlock?()
+        }
+      }
   }
   
   @available(*, unavailable)
