@@ -15,10 +15,12 @@ class DebouncingResourceDownloaderTests: XCTestCase {
     let data = try Data(contentsOf: resourceURL!)
     let downloader = DebouncingResourceDownloader()
     let testURLs = [
-      // An honest url (that actually exists)
-      URL(string: "https://www.youtube.com/redirect?q=https%3A%2F%2Fexample.com")!,
+      // Honest urls (that actually exists)
+      URL(string: "https://www.youtube.com/redirect?q=https://example.com")!,
+      // Duplicated item in debounce list
+      URL(string: "https://m.facebook.com/1.php?u=https://example.com")!,
       // First entry in a list
-      URL(string: "https://www.leechall.com/redirect.php?url=https%3A%2F%2Fexample.com")!,
+      URL(string: "https://www.leechall.com/redirect.php?url=https://example.com")!,
       // Last entry in a list and base64 encoded
       URL(string: "https://www.pixelshost.com/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
       // Fixed subdomain
