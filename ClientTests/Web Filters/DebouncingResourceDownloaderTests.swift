@@ -14,7 +14,7 @@ class DebouncingResourceDownloaderTests: XCTestCase {
     let resourceURL = bundle.url(forResource: "debouncing", withExtension: "json")
     let data = try Data(contentsOf: resourceURL!)
     let downloader = DebouncingResourceDownloader()
-    let testURLs = [
+    let includedURLs = [
       // Honest urls (that actually exists)
       URL(string: "https://www.youtube.com/redirect?q=https://example.com")!,
       // Duplicated item in debounce list
@@ -29,7 +29,15 @@ class DebouncingResourceDownloaderTests: XCTestCase {
       URL(string: "https://foo.novicearea.com/some-path/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
       // An example where the pattern doesn't have a host and is base64 encoded
       // Example: `*://*/descargar/index.php?url=*`
-      URL(string: "https://example.com/descargar/index.php?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!
+      URL(string: "https://example.com/descargar/index.php?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
+      // Matchall rule
+      URL(string: "https://example.com/?_custom=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
+    ]
+
+    let excludedURLs = [
+      URL(string: "https://exclude.leechall.com/exclude.php?url=https://example.com")!,
+      // Matchall rule
+      URL(string: "https://exclude.com/?_custom=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!
     ]
 
     // When
@@ -41,8 +49,14 @@ class DebouncingResourceDownloaderTests: XCTestCase {
     // Then
     // Returns valid debounced links
     let extractURL = URL(string: "https://example.com")!
-    for testURL in testURLs {
-      XCTAssertEqual(downloader.redirectURL(for: testURL), extractURL)
+    for includedURL in includedURLs {
+      XCTAssertEqual(downloader.redirectURL(for: includedURL), extractURL)
+    }
+
+    // Then
+    // Returns nil for excluded items
+    for excludedURL in excludedURLs {
+      XCTAssertEqual(downloader.redirectURL(for: excludedURL), nil)
     }
   }
 }

@@ -65,7 +65,7 @@ class DebouncingResourceDownloader {
   struct Matcher {
     typealias MatcherRuleEntry = (rule: MatcherRule, relevantPattern: String)
     private let etldToRule: [String: MatcherRuleEntry] // A
-    private let queryToRule: [String: MatcherRuleEntry] // B
+    private let queryToRule: [String: MatcherRule] // B
     private let otherRules: [MatcherRule] // C
 
     /// Initialize this matcher with the given rule set
@@ -82,7 +82,7 @@ class DebouncingResourceDownloader {
     /// 5. For each rule in bucket B, for each query parameter, add it to the map from step 4
     init(rules: [MatcherRule]) {
       var etldToRule: [String: MatcherRuleEntry] = [:] // A
-      var queryToRule: [String: MatcherRuleEntry] = [:] // B
+      var queryToRule: [String: MatcherRule] = [:] // B
       var otherRules: [MatcherRule] = [] // C
 
       for rule in rules {
@@ -99,7 +99,7 @@ class DebouncingResourceDownloader {
             if urlPattern.isMatchingAllURLs {
               // We put this query param and rule to our A bucket
               // This seems to be an empty list for now
-              queryToRule[rule.param] = (rule, pattern)
+              queryToRule[rule.param] = rule
             } else if let url = urlComponents.url, let etld = url.baseDomain {
               // We put this etld and rule to our B bucket
               etldToRule[etld] = (rule, pattern)
@@ -170,14 +170,13 @@ class DebouncingResourceDownloader {
     ) -> (queryItem: URLQueryItem, actions: Set<MatcherRule.Action>)? {
       for queryItem in queryItems {
         guard
-          let entry = queryToRule[queryItem.name],
-          url.matches(pattern: entry.relevantPattern),
-          !entry.rule.isExcluded(url: url)
+          let rule = queryToRule[queryItem.name],
+          !rule.isExcluded(url: url)
         else {
           continue
         }
 
-        return (queryItem, entry.rule.actions)
+        return (queryItem, rule.actions)
       }
 
       return nil

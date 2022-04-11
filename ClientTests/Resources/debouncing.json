@@ -43,6 +43,7 @@
       "*://*.tradedoubler.com/click?*"
     ],
     "exclude": [
+      "*://*.leechall.com/exclude.php?url=*",
     ],
     "action": "redirect",
     "param": "url"
@@ -55,6 +56,16 @@
     ],
     "action": "redirect",
     "param": "_td_deeplink"
+  },
+  {
+    "include": [
+      "<all_urls>"
+    ],
+    "exclude": [
+      "*://*.exclude.com/*",
+    ],
+    "action": "base64,redirect",
+    "param": "_custom"
   },
   {
     "include": [
