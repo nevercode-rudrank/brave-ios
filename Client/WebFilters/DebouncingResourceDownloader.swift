@@ -234,8 +234,10 @@ class DebouncingResourceDownloader {
   private let cacheFolderName = "debounce-data"
   private var matcher: Matcher?
 
+  /// A boolean indicating if this is a first time load of this downloader so we only load cached data once
+  private var initialLoad = true
   /// Initialized with year 1970 to force adblock fetch at first launch.
-  private(set) var lastFetchDate = Date(timeIntervalSince1970: 0)
+  private var lastFetchDate = Date(timeIntervalSince1970: 0)
   /// How frequently to fetch the data
   private lazy var fetchInterval = AppConstants.buildChannel.isPublic ? 6.hours : 10.minutes
 
@@ -261,13 +263,17 @@ class DebouncingResourceDownloader {
     let etagFileName = [cacheFileName, "etag"].joined(separator: ".")
     let cacheFolderName = self.cacheFolderName
 
-    do {
-      // Load data from disk if we have it
-      if let cachedData = try self.dataFromDocument(inFolder: cacheFolderName, fileName: cacheFileName) {
-        try setup(withRulesJSON: cachedData)
+    if initialLoad {
+      initialLoad = false
+
+      do {
+        // Load data from disk if we have it
+        if let cachedData = try self.dataFromDocument(inFolder: cacheFolderName, fileName: cacheFileName) {
+          try setup(withRulesJSON: cachedData)
+        }
+      } catch {
+        log.error(error)
       }
-    } catch {
-      log.error(error)
     }
 
     if now.timeIntervalSince(lastFetchDate) >= fetchInterval {
