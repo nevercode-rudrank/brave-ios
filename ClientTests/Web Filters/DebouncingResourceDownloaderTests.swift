@@ -9,22 +9,11 @@ import XCTest
 class DebouncingResourceDownloaderTests: XCTestCase {
   func testSettingUpDownloaderAndCheckingURLs() throws {
     // Given
-    // JSON data and a downloader
+    // JSON data, a downloader and test urls
     let bundle = Bundle(for: Self.self)
     let resourceURL = bundle.url(forResource: "debouncing", withExtension: "json")
     let data = try Data(contentsOf: resourceURL!)
     let downloader = DebouncingResourceDownloader()
-
-    // When
-    // Setting up downloader
-    // Then
-    // doesn't throw
-    try downloader.setup(withRulesJSON: data)
-
-    // Then
-    // Returns true for deboncing links
-    let extractURL = URL(string: "https://example.com")!
-
     let testURLs = [
       // An honest url (that actually exists)
       URL(string: "https://www.youtube.com/redirect?q=https%3A%2F%2Fexample.com")!,
@@ -35,9 +24,21 @@ class DebouncingResourceDownloaderTests: XCTestCase {
       // Fixed subdomain
       URL(string: "https://goto.walmart.com/c/?u=https%3A%2F%2Fexample.com")!,
       // Middle entry in a list and base64 encoded
-      URL(string: "https://foo.novicearea.com/some-path/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!
+      URL(string: "https://foo.novicearea.com/some-path/?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!,
+      // An example where the pattern doesn't have a host and is base64 encoded
+      // Example: `*://*/descargar/index.php?url=*`
+      URL(string: "https://example.com/descargar/index.php?url=aHR0cHM6Ly9leGFtcGxlLmNvbQ==")!
     ]
 
+    // When
+    // Setting up downloader
+    // Then
+    // doesn't throw
+    try downloader.setup(withRulesJSON: data)
+
+    // Then
+    // Returns valid debounced links
+    let extractURL = URL(string: "https://example.com")!
     for testURL in testURLs {
       XCTAssertEqual(downloader.redirectURL(for: testURL), extractURL)
     }
