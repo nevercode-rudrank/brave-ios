@@ -954,8 +954,6 @@
 		7DF911DF27726E5E00EF0D8B /* BuyTokenStoreTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DF911DE27726E5E00EF0D8B /* BuyTokenStoreTest.swift */; };
 		8C99379028031B51001CD6E9 /* DebouncingResourceDownloaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C99378F28031B51001CD6E9 /* DebouncingResourceDownloaderTests.swift */; };
 		8C99379328031BF7001CD6E9 /* debouncing.json in Resources */ = {isa = PBXBuildFile; fileRef = 8C99379228031BF7001CD6E9 /* debouncing.json */; };
-		8C99379728048BD2001CD6E9 /* URLHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C99379628048BD2001CD6E9 /* URLHelper.swift */; };
-		8C9937A328048C40001CD6E9 /* URLHelperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9937A228048C40001CD6E9 /* URLHelperTests.swift */; };
 		8CB0FD9A27DAB06E00707490 /* FarblingProtection.js in Resources */ = {isa = PBXBuildFile; fileRef = 8CB0FD9927DAB06E00707490 /* FarblingProtection.js */; };
 		8CB0FDA827DB9D5400707490 /* ScriptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB0FDA727DB9D5300707490 /* ScriptFactory.swift */; };
 		8CB0FDBA27E0EC1C00707490 /* UserScriptHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB0FDB927E0EC1B00707490 /* UserScriptHelper.swift */; };
@@ -2950,8 +2948,6 @@
 		7DF911DE27726E5E00EF0D8B /* BuyTokenStoreTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuyTokenStoreTest.swift; sourceTree = "<group>"; };
 		8C99378F28031B51001CD6E9 /* DebouncingResourceDownloaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebouncingResourceDownloaderTests.swift; sourceTree = "<group>"; };
 		8C99379228031BF7001CD6E9 /* debouncing.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = debouncing.json; sourceTree = "<group>"; };
-		8C99379628048BD2001CD6E9 /* URLHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelper.swift; sourceTree = "<group>"; };
-		8C9937A228048C40001CD6E9 /* URLHelperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLHelperTests.swift; sourceTree = "<group>"; };
 		8CB0FD9927DAB06E00707490 /* FarblingProtection.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = FarblingProtection.js; sourceTree = "<group>"; tabWidth = 2; };
 		8CB0FDA727DB9D5300707490 /* ScriptFactory.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = ScriptFactory.swift; sourceTree = "<group>"; tabWidth = 2; };
 		8CB0FDB927E0EC1B00707490 /* UserScriptHelper.swift */ = {isa = PBXFileReference; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = UserScriptHelper.swift; sourceTree = "<group>"; tabWidth = 2; };
@@ -6411,7 +6407,6 @@
 				5EAB745B230456F0006055F5 /* BookmarkValidation.swift */,
 				CAA0BD8F26F2562D00F14212 /* PrivilegedRequest.swift */,
 				D3C744CC1A687D6C004CE85D /* URIFixup.swift */,
-				8C99379628048BD2001CD6E9 /* URLHelper.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -6509,7 +6504,6 @@
 				0ADCD45A231973650078CC67 /* UserAgentBuilderTests.swift */,
 				0AB7FCDE235DEE8F00F1D9F5 /* NumberExtensionTests.swift */,
 				0AF52D05237B19CB00BFAB56 /* BytesTests.swift */,
-				8C9937A228048C40001CD6E9 /* URLHelperTests.swift */,
 			);
 			path = SharedTests;
 			sourceTree = "<group>";
@@ -8249,7 +8243,6 @@
 				E65075BA1E37F7AB006961AC /* Prefs.swift in Sources */,
 				E65075A01E37F7AB006961AC /* ArrayExtensions.swift in Sources */,
 				E65075A31E37F7AB006961AC /* KeychainWrapperExtensions.swift in Sources */,
-				8C99379728048BD2001CD6E9 /* URLHelper.swift in Sources */,
 				59B6902921B684A700E9388E /* BundleExtension.swift in Sources */,
 				E65075921E37F7AB006961AC /* Accessibility.swift in Sources */,
 				E65075B51E37F7AB006961AC /* LaunchArguments.swift in Sources */,
@@ -8464,7 +8457,6 @@
 				28532BEA1C472008000072D9 /* DeferredTests.swift in Sources */,
 				3BB54B311E68EB2B0021DAC4 /* AuthenticationKeychainInfoTests.swift in Sources */,
 				A176323820CF2A6000126F25 /* DeferredTestUtils.swift in Sources */,
-				8C9937A328048C40001CD6E9 /* URLHelperTests.swift in Sources */,
 				0ADCD45B231973650078CC67 /* UserAgentBuilderTests.swift in Sources */,
 				0AB7FCDF235DEE8F00F1D9F5 /* NumberExtensionTests.swift in Sources */,
 				E4E25CCB1CA99E7400D0F088 /* HexExtensionsTests.swift in Sources */,

@@ -93,12 +93,19 @@ class DebouncingResourceDownloader {
           switch parseResult {
           case .success:
             let patternHost = urlPattern.host
+            var urlComponents = URLComponents()
+            urlComponents.host = patternHost
+
             if urlPattern.isMatchingAllURLs {
-              // We put this query param and actoins to our A bucket
+              // We put this query param and rule to our A bucket
+              // This seems to be an empty list for now
               queryToRule[rule.param] = (rule, pattern)
-            } else if let etld = URLHelper.shared.publicSuffix(fromHost: patternHost) {
+            } else if let url = urlComponents.url, let etld = url.baseDomain {
+              // We put this etld and rule to our B bucket
               etldToRule[etld] = (rule, pattern)
             } else {
+              // Everything else goes to our C bucket
+              // For the time being this set only encompases patterns without a host
               otherRules.append(rule)
             }
           default:
