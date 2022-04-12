@@ -330,9 +330,9 @@ extension BrowserViewController: TopToolbarDelegate {
     scanQRCode()
   }
 
-    func topToolbarDidTapWalletButton(_ urlBar: TopToolbarView) {
-        presentWalletPanel()
-    }
+  func topToolbarDidTapWalletButton(_ urlBar: TopToolbarView) {
+    presentWalletPanel()
+  }
     
   private func hideSearchController() {
     if let searchController = searchController {
