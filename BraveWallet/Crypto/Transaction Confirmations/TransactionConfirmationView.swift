@@ -14,6 +14,8 @@ struct TransactionConfirmationView: View {
   @ObservedObject var confirmationStore: TransactionConfirmationStore
   @ObservedObject var networkStore: NetworkStore
   @ObservedObject var keyringStore: KeyringStore
+  
+  var onDismiss: () -> Void
 
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.presentationMode) @Binding private var presentationMode
@@ -43,7 +45,7 @@ struct TransactionConfirmationView: View {
 
   private func rejectAll() {
     for transaction in confirmationStore.transactions {
-      confirmationStore.reject(transaction: transaction)
+      confirmationStore.reject(transaction: transaction) { _ in }
     }
   }
 
@@ -114,183 +116,180 @@ struct TransactionConfirmationView: View {
   }
 
   var body: some View {
-    NavigationView {
-      ScrollView(.vertical) {
-        VStack {
-          // Header
-          HStack {
-            Text(networkStore.selectedChain.shortChainName)
-            Spacer()
-            if confirmationStore.transactions.count > 1 {
-              let index = confirmationStore.transactions.firstIndex(of: activeTransaction) ?? 0
-              Text(String.localizedStringWithFormat(Strings.Wallet.transactionCount, index + 1, confirmationStore.transactions.count))
-                .fontWeight(.semibold)
-              Button(action: next) {
-                Text(Strings.Wallet.next)
-                  .fontWeight(.semibold)
-                  .foregroundColor(Color(.braveBlurpleTint))
-              }
-            }
-          }
-          .font(.callout)
-          // Summary
-          TransactionHeader(
-            fromAccountAddress: activeTransaction.fromAddress,
-            fromAccountName: fromAccountName,
-            toAccountAddress: activeTransaction.ethTxToAddress,
-            toAccountName: toAccountName,
-            transactionType: transactionType,
-            value: "\(confirmationStore.state.value) \(confirmationStore.state.symbol)",
-            fiat: confirmationStore.state.fiat
-          )
-          // View Mode
-          VStack(spacing: 12) {
-            Picker("", selection: $viewMode) {
-              Text(Strings.Wallet.confirmationViewModeTransaction).tag(ViewMode.transaction)
-              Text(Strings.Wallet.confirmationViewModeDetails).tag(ViewMode.details)
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            Group {
-              switch viewMode {
-              case .transaction:
-                VStack(spacing: 0) {
-                  HStack {
-                    VStack(alignment: .leading) {
-                      Text(Strings.Wallet.gasFee)
-                        .foregroundColor(Color(.bravePrimary))
-                      editGasFeeButton
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                      Text("\(confirmationStore.state.gasValue) \(confirmationStore.state.gasSymbol)")
-                        .foregroundColor(Color(.bravePrimary))
-                      Text(confirmationStore.state.gasFiat)
-                        .font(.footnote)
-                    }
-                  }
-                  .font(.callout)
-                  .padding()
-                  .accessibilityElement(children: .contain)
-                  Divider()
-                    .padding(.leading)
-                  HStack {
-                    Text(Strings.Wallet.total)
-                      .foregroundColor(Color(.bravePrimary))
-                      .font(.callout)
-                      .accessibility(sortPriority: 1)
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                      Text(Strings.Wallet.amountAndGas)
-                        .font(.footnote)
-                        .foregroundColor(Color(.secondaryBraveLabel))
-                      Text("\(confirmationStore.state.value) \(confirmationStore.state.symbol) + \(confirmationStore.state.gasValue) \(confirmationStore.state.gasSymbol)")
-                        .foregroundColor(Color(.bravePrimary))
-                      HStack(spacing: 4) {
-                        if !confirmationStore.state.isBalanceSufficient {
-                          Text(Strings.Wallet.insufficientBalance)
-                            .foregroundColor(Color(.braveErrorLabel))
-                        }
-                        Text(confirmationStore.state.totalFiat)
-                          .foregroundColor(
-                            confirmationStore.state.isBalanceSufficient ? Color(.braveLabel) : Color(.braveErrorLabel)
-                          )
-                      }
-                      .accessibilityElement(children: .contain)
-                      .font(.footnote)
-                    }
-                  }
-                  .padding()
-                  .accessibilityElement(children: .contain)
-                  Divider()
-                    .padding(.leading)
-                  NavigationLink(
-                    destination: EditNonceView(
-                      confirmationStore: confirmationStore,
-                      transaction: activeTransaction
-                    )
-                  ) {
-                    HStack {
-                      Image("brave.gear")
-                        .foregroundColor(Color(.braveBlurpleTint))
-                      Text(Strings.Wallet.advancedSettingsTransaction)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .foregroundColor(Color(.braveBlurpleTint))
-                      Spacer()
-                      Image(systemName: "chevron.right")
-                    }
-                    .padding()
-                    .font(.footnote.weight(.semibold))
-                  }
-                }
-              case .details:
-                VStack(alignment: .leading) {
-                  StaticTextView(text: transactionDetails)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 200)
-                    .background(Color(.tertiaryBraveGroupedBackground))
-                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                }
-                .padding()
-              }
-            }
-            .frame(maxWidth: .infinity)
-            .background(
-              Color(.secondaryBraveGroupedBackground)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-          }
+    ScrollView(.vertical) {
+      VStack {
+        // Header
+        HStack {
+          Text(networkStore.selectedChain.shortChainName)
+          Spacer()
           if confirmationStore.transactions.count > 1 {
-            Button(action: rejectAll) {
-              Text(String.localizedStringWithFormat(Strings.Wallet.rejectAllTransactions, confirmationStore.transactions.count))
-                .font(.subheadline.weight(.semibold))
+            let index = confirmationStore.transactions.firstIndex(of: activeTransaction) ?? 0
+            Text(String.localizedStringWithFormat(Strings.Wallet.transactionCount, index + 1, confirmationStore.transactions.count))
+              .fontWeight(.semibold)
+            Button(action: next) {
+              Text(Strings.Wallet.next)
+                .fontWeight(.semibold)
                 .foregroundColor(Color(.braveBlurpleTint))
             }
-            .padding(.top, 8)
           }
-          rejectConfirmContainer
-            .padding(.top)
-            .opacity(sizeCategory.isAccessibilityCategory ? 0 : 1)
-            .accessibility(hidden: sizeCategory.isAccessibilityCategory)
         }
-        .padding()
+        .font(.callout)
+        // Summary
+        TransactionHeader(
+          fromAccountAddress: activeTransaction.fromAddress,
+          fromAccountName: fromAccountName,
+          toAccountAddress: activeTransaction.ethTxToAddress,
+          toAccountName: toAccountName,
+          transactionType: transactionType,
+          value: "\(confirmationStore.state.value) \(confirmationStore.state.symbol)",
+          fiat: confirmationStore.state.fiat
+        )
+        // View Mode
+        VStack(spacing: 12) {
+          Picker("", selection: $viewMode) {
+            Text(Strings.Wallet.confirmationViewModeTransaction).tag(ViewMode.transaction)
+            Text(Strings.Wallet.confirmationViewModeDetails).tag(ViewMode.details)
+          }
+          .pickerStyle(SegmentedPickerStyle())
+          Group {
+            switch viewMode {
+            case .transaction:
+              VStack(spacing: 0) {
+                HStack {
+                  VStack(alignment: .leading) {
+                    Text(Strings.Wallet.gasFee)
+                      .foregroundColor(Color(.bravePrimary))
+                    editGasFeeButton
+                  }
+                  Spacer()
+                  VStack(alignment: .trailing) {
+                    Text("\(confirmationStore.state.gasValue) \(confirmationStore.state.gasSymbol)")
+                      .foregroundColor(Color(.bravePrimary))
+                    Text(confirmationStore.state.gasFiat)
+                      .font(.footnote)
+                  }
+                }
+                .font(.callout)
+                .padding()
+                .accessibilityElement(children: .contain)
+                Divider()
+                  .padding(.leading)
+                HStack {
+                  Text(Strings.Wallet.total)
+                    .foregroundColor(Color(.bravePrimary))
+                    .font(.callout)
+                    .accessibility(sortPriority: 1)
+                  Spacer()
+                  VStack(alignment: .trailing) {
+                    Text(Strings.Wallet.amountAndGas)
+                      .font(.footnote)
+                      .foregroundColor(Color(.secondaryBraveLabel))
+                    Text("\(confirmationStore.state.value) \(confirmationStore.state.symbol) + \(confirmationStore.state.gasValue) \(confirmationStore.state.gasSymbol)")
+                      .foregroundColor(Color(.bravePrimary))
+                    HStack(spacing: 4) {
+                      if !confirmationStore.state.isBalanceSufficient {
+                        Text(Strings.Wallet.insufficientBalance)
+                          .foregroundColor(Color(.braveErrorLabel))
+                      }
+                      Text(confirmationStore.state.totalFiat)
+                        .foregroundColor(
+                          confirmationStore.state.isBalanceSufficient ? Color(.braveLabel) : Color(.braveErrorLabel)
+                        )
+                    }
+                    .accessibilityElement(children: .contain)
+                    .font(.footnote)
+                  }
+                }
+                .padding()
+                .accessibilityElement(children: .contain)
+                Divider()
+                  .padding(.leading)
+                NavigationLink(
+                  destination: EditNonceView(
+                    confirmationStore: confirmationStore,
+                    transaction: activeTransaction
+                  )
+                ) {
+                  HStack {
+                    Image("brave.gear")
+                      .foregroundColor(Color(.braveBlurpleTint))
+                    Text(Strings.Wallet.advancedSettingsTransaction)
+                      .frame(maxWidth: .infinity, alignment: .leading)
+                      .foregroundColor(Color(.braveBlurpleTint))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                  }
+                  .padding()
+                  .font(.footnote.weight(.semibold))
+                }
+              }
+            case .details:
+              VStack(alignment: .leading) {
+                StaticTextView(text: transactionDetails)
+                  .frame(maxWidth: .infinity)
+                  .frame(height: 200)
+                  .background(Color(.tertiaryBraveGroupedBackground))
+                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+              }
+              .padding()
+            }
+          }
+          .frame(maxWidth: .infinity)
+          .background(
+            Color(.secondaryBraveGroupedBackground)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        if confirmationStore.transactions.count > 1 {
+          Button(action: rejectAll) {
+            Text(String.localizedStringWithFormat(Strings.Wallet.rejectAllTransactions, confirmationStore.transactions.count))
+              .font(.subheadline.weight(.semibold))
+              .foregroundColor(Color(.braveBlurpleTint))
+          }
+          .padding(.top, 8)
+        }
+        rejectConfirmContainer
+          .padding(.top)
+          .opacity(sizeCategory.isAccessibilityCategory ? 0 : 1)
+          .accessibility(hidden: sizeCategory.isAccessibilityCategory)
       }
-      .overlay(
-        Group {
-          if sizeCategory.isAccessibilityCategory {
-            rejectConfirmContainer
-              .frame(maxWidth: .infinity)
-              .padding(.top)
-              .background(
-                LinearGradient(
-                  stops: [
-                    .init(color: Color(.braveGroupedBackground).opacity(0), location: 0),
-                    .init(color: Color(.braveGroupedBackground).opacity(1), location: 0.05),
-                    .init(color: Color(.braveGroupedBackground).opacity(1), location: 1),
-                  ],
-                  startPoint: .top,
-                  endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+      .padding()
+    }
+    .overlay(
+      Group {
+        if sizeCategory.isAccessibilityCategory {
+          rejectConfirmContainer
+            .frame(maxWidth: .infinity)
+            .padding(.top)
+            .background(
+              LinearGradient(
+                stops: [
+                  .init(color: Color(.braveGroupedBackground).opacity(0), location: 0),
+                  .init(color: Color(.braveGroupedBackground).opacity(1), location: 0.05),
+                  .init(color: Color(.braveGroupedBackground).opacity(1), location: 1),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
               )
-          }
-        },
-        alignment: .bottom
-      )
-      .navigationBarTitle(confirmationStore.transactions.count > 1 ? Strings.Wallet.confirmTransactionsTitle : Strings.Wallet.confirmTransactionTitle)
-      .navigationBarTitleDisplayMode(.inline)
-      .foregroundColor(Color(.braveLabel))
-      .background(Color(.braveGroupedBackground).edgesIgnoringSafeArea(.all))
-      .toolbar {
-        ToolbarItemGroup(placement: .cancellationAction) {
-          Button(action: { presentationMode.dismiss() }) {
-            Text(Strings.cancelButtonTitle)
-              .foregroundColor(Color(.braveOrange))
-          }
+              .ignoresSafeArea()
+              .allowsHitTesting(false)
+            )
+        }
+      },
+      alignment: .bottom
+    )
+    .navigationBarTitle(confirmationStore.transactions.count > 1 ? Strings.Wallet.confirmTransactionsTitle : Strings.Wallet.confirmTransactionTitle)
+    .navigationBarTitleDisplayMode(.inline)
+    .foregroundColor(Color(.braveLabel))
+    .background(Color(.braveGroupedBackground).edgesIgnoringSafeArea(.all))
+    .toolbar {
+      ToolbarItemGroup(placement: .cancellationAction) {
+        Button(action: { presentationMode.dismiss() }) {
+          Text(Strings.cancelButtonTitle)
+            .foregroundColor(Color(.braveOrange))
         }
       }
     }
-    .navigationViewStyle(StackNavigationViewStyle())
     .onAppear {
       confirmationStore.prepare()
     }
@@ -310,13 +309,21 @@ struct TransactionConfirmationView: View {
 
   @ViewBuilder private var rejectConfirmButtons: some View {
     Button(action: {
-      confirmationStore.reject(transaction: activeTransaction)
+      confirmationStore.reject(transaction: activeTransaction) { success in
+        if confirmationStore.transactions.count == 1 {
+          onDismiss()
+        }
+      }
     }) {
       Label(Strings.Wallet.rejectTransactionButtonTitle, systemImage: "xmark")
     }
     .buttonStyle(BraveOutlineButtonStyle(size: .large))
     Button(action: {
-      confirmationStore.confirm(transaction: activeTransaction)
+      confirmationStore.confirm(transaction: activeTransaction) { error in
+        if confirmationStore.transactions.count == 1 {
+          onDismiss()
+        }
+      }
     }) {
       Label(Strings.Wallet.confirm, systemImage: "checkmark.circle.fill")
     }
@@ -359,7 +366,8 @@ struct TransactionConfirmationView_Previews: PreviewProvider {
     TransactionConfirmationView(
       confirmationStore: .previewStore,
       networkStore: .previewStore,
-      keyringStore: .previewStoreWithWalletCreated
+      keyringStore: .previewStoreWithWalletCreated,
+      onDismiss: { }
     )
     .previewLayout(.sizeThatFits)
   }

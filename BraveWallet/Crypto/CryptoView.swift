@@ -77,11 +77,14 @@ public struct CryptoView: View {
                 cryptoStore: store,
                 toolbarDismissContent: dismissButtonToolbarContents
               )
-            case .webpageRequests:
-              WebpageRequestContainerView(
+            case .pendingRequests:
+              RequestContainerView(
                 keyringStore: keyringStore,
                 cryptoStore: store,
-                toolbarDismissContent: dismissButtonToolbarContents
+                toolbarDismissContent: dismissButtonToolbarContents,
+                onDismiss: {
+                  dismissAction?()
+                }
               )
             case .requestEthererumPermissions(let request):
               NewSiteConnectionView(
@@ -176,12 +179,13 @@ private struct CryptoContainerView<DismissContent: ToolbarContent>: View {
     )
     .background(
       Color.clear
-        .sheet(isPresented: $cryptoStore.isPresentingTransactionConfirmations) {
-          if cryptoStore.hasUnapprovedTransactions {
-            TransactionConfirmationView(
-              confirmationStore: cryptoStore.openConfirmationStore(),
-              networkStore: cryptoStore.networkStore,
-              keyringStore: keyringStore
+        .sheet(isPresented: $cryptoStore.isPresentingPendingRequest) {
+          if cryptoStore.pendingRequest != nil {
+            RequestContainerView(
+              keyringStore: keyringStore,
+              cryptoStore: cryptoStore,
+              toolbarDismissContent: toolbarDismissContent,
+              onDismiss: { }
             )
           }
         }

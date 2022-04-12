@@ -9,24 +9,33 @@ import BraveUI
 
 /// A container to present when a webpage wants to present some request to the user such as adding a suggested
 /// token, change networks, authorize a transaction, etc.
-struct WebpageRequestContainerView<DismissContent: ToolbarContent>: View {
+struct RequestContainerView<DismissContent: ToolbarContent>: View {
   @ObservedObject var keyringStore: KeyringStore
   @ObservedObject var cryptoStore: CryptoStore
   var toolbarDismissContent: DismissContent
   
+  var onDismiss: () -> Void
+  
   var body: some View {
     UIKitNavigationView {
       Group {
-        if let pendingRequest = cryptoStore.pendingWebpageRequest {
-
+        if let pendingRequest = cryptoStore.pendingRequest {
+          switch pendingRequest {
+          case .transactions:
+            TransactionConfirmationView(
+              confirmationStore: cryptoStore.openConfirmationStore(),
+              networkStore: cryptoStore.networkStore,
+              keyringStore: keyringStore,
+              onDismiss: onDismiss
+            )
+          default:
+            EmptyView()
+          }
         }
       }
       .toolbar {
         toolbarDismissContent
       }
-    }
-    .onAppear {
-      // TODO: Fetch pending requests
     }
   }
 }
