@@ -286,12 +286,17 @@ class DebouncingResourceDownloader {
     let etagFileName = [cacheFileName, "etag"].joined(separator: ".")
     let cacheFolderName = self.cacheFolderName
 
+    guard let cacheFolderURL = FileManager.default.getOrCreateFolder(name: cacheFolderName) else {
+      log.error("Failed to get folder: \(cacheFolderName)")
+      return
+    }
+
     if initialLoad {
       initialLoad = false
 
       do {
         // Load data from disk if we have it
-        if let cachedData = try self.dataFromDocument(inFolder: cacheFolderName, fileName: cacheFileName) {
+        if let cachedData = try self.dataFromDocument(inFolder: cacheFolderURL, fileName: cacheFileName) {
           try setup(withRulesJSON: cachedData)
         }
       } catch {
@@ -313,7 +318,7 @@ class DebouncingResourceDownloader {
       }
 
       do {
-        etag = try self.stringFromDocument(inFolder: cacheFolderName, fileName: etagFileName)
+        etag = try self.stringFromDocument(inFolder: cacheFolderURL, fileName: etagFileName)
       } catch {
         etag = nil
         log.error(error)
@@ -336,13 +341,13 @@ class DebouncingResourceDownloader {
         do {
           // Save the data to file
           try self.writeDataToDisk(
-            data: resource.data, inFolder: cacheFolderName, fileName: cacheFileName
+            data: resource.data, inFolder: cacheFolderURL, fileName: cacheFileName
           )
 
           // Save the etag to file
           if let data = resource.etag?.data(using: .utf8) {
             try self.writeDataToDisk(
-              data: data, inFolder: cacheFolderName, fileName: etagFileName
+              data: data, inFolder: cacheFolderURL, fileName: etagFileName
             )
           }
 
@@ -366,9 +371,8 @@ class DebouncingResourceDownloader {
   /// and found in the `applicationSupportDirectory` `SearchPathDirectory`.
   ///
   /// - Note: `fileName` must contain the full file name including the extension.
-  private func dataFromDocument(inFolder folderName: String, fileName: String) throws -> Data? {
-    let folderUrl = try FileManager.default.getOrCreateFolderDirectory(name: folderName)
-    let fileUrl = folderUrl.appendingPathComponent(fileName)
+  private func dataFromDocument(inFolder folderURL: URL, fileName: String) throws -> Data? {
+    let fileUrl = folderURL.appendingPathComponent(fileName)
     return FileManager.default.contents(atPath: fileUrl.path)
   }
 
@@ -376,9 +380,8 @@ class DebouncingResourceDownloader {
   /// and found in the `applicationSupportDirectory` `SearchPathDirectory`.
   ///
   /// - Note: `fileName` must contain the full file name including the extension.
-  private func stringFromDocument(inFolder folderName: String, fileName: String) throws -> String? {
-    let folderUrl = try FileManager.default.getOrCreateFolderDirectory(name: folderName)
-    let fileUrl = folderUrl.appendingPathComponent(fileName)
+  private func stringFromDocument(inFolder folderURL: URL, fileName: String) throws -> String? {
+    let fileUrl = folderURL.appendingPathComponent(fileName)
     guard let data = FileManager.default.contents(atPath: fileUrl.path) else { return nil }
     return String(data: data, encoding: .utf8)
   }
@@ -388,9 +391,8 @@ class DebouncingResourceDownloader {
   ///
   /// - Note: `fileName` must contain the full file name including the extension.
   @discardableResult
-  func writeDataToDisk(data: Data, inFolder folderName: String, fileName: String) throws -> URL {
-    let folderUrl = try FileManager.default.getOrCreateFolderDirectory(name: folderName)
-    let fileUrl = folderUrl.appendingPathComponent(fileName)
+  func writeDataToDisk(data: Data, inFolder folderURL: URL, fileName: String) throws -> URL {
+    let fileUrl = folderURL.appendingPathComponent(fileName)
     try data.write(to: fileUrl, options: [.atomic])
     return fileUrl
   }
@@ -398,36 +400,6 @@ class DebouncingResourceDownloader {
 
 enum DirectoryError: Error {
   case cannotFindSearchPathDirectory
-}
-
-private extension FileManager {
-  /// Creates a folder at given location if it is required.
-  func ensureFolderDirectory(folderDirectory: inout URL, excludeFromBackups: Bool = true) throws {
-    if fileExists(atPath: folderDirectory.path) { return }
-    try createDirectory(at: folderDirectory, withIntermediateDirectories: true, attributes: nil)
-
-    if excludeFromBackups {
-      var resourceValues = URLResourceValues()
-      resourceValues.isExcludedFromBackup = true
-      try folderDirectory.setResourceValues(resourceValues)
-    }
-  }
-
-  /// Creates a folder at given location and returns its URL
-  ///
-  /// - Note: If folder already exists, returns it's URL as well.
-  func getOrCreateFolderDirectory(
-    name: String,
-    at location: SearchPathDirectory = .applicationSupportDirectory
-  ) throws -> URL {
-    guard let documentsDirectory = location.url else {
-      throw DirectoryError.cannotFindSearchPathDirectory
-    }
-
-    var folderDirectory = documentsDirectory.appendingPathComponent(name)
-    try ensureFolderDirectory(folderDirectory: &folderDirectory, excludeFromBackups: true)
-    return folderDirectory
-  }
 }
 
 extension URL {
