@@ -30,7 +30,7 @@ class DebouncingResourceDownloader {
     /// A set of patterns that are include in this rule
     let include: Set<String>
     /// A set of patterns that are excluded from this rule
-    let exclude: Set<String>
+    let exclude: Set<String>?
     /// The query param that contains the redirect `URL` to be extractted from
     let param: String
     /// The actions in a raw format. Need to be broken down to a set of `Action` entries
@@ -45,7 +45,7 @@ class DebouncingResourceDownloader {
 
     /// Determines if this url is not excluded in the exclude list
     func isExcluded(url: URL) -> Bool {
-      return exclude.contains(where: { url.matches(pattern: $0) })
+      return exclude?.contains(where: { url.matches(pattern: $0) }) ?? false
     }
 
     /// Determines if this rule handles the given URL
@@ -63,8 +63,8 @@ class DebouncingResourceDownloader {
 
   /// A class that, given a set of rules, helps in returning a redirect URL
   struct Matcher {
-    typealias MatcherRuleEntry = (rule: MatcherRule, relevantPattern: String)
-    private let etldToRule: [String: MatcherRuleEntry] // A
+    typealias MatcherRuleEntry = (rule: MatcherRule, relevantPatterns: [String])
+    private let etldToRule: [String: [MatcherRuleEntry]] // A
     private let queryToRule: [String: MatcherRule] // B
     private let otherRules: [MatcherRule] // C
 
@@ -81,13 +81,15 @@ class DebouncingResourceDownloader {
     /// 4. Create a map of query parameter name -> bounce tracking rule
     /// 5. For each rule in bucket B, for each query parameter, add it to the map from step 4
     init(rules: [MatcherRule]) {
-      var etldToRule: [String: MatcherRuleEntry] = [:] // A
+      var etldToRule: [String: [MatcherRuleEntry]] = [:] // A
       var queryToRule: [String: MatcherRule] = [:] // B
       var otherRules: [MatcherRule] = [] // C
 
       for rule in rules {
+        var etldToRelevantPatterns: [String: [String]] = [:]
+
         for pattern in rule.include {
-          let urlPattern = URLPattern()
+          let urlPattern = URLPattern(validSchemes: .all)
           let parseResult = urlPattern.parse(pattern: pattern)
 
           switch parseResult {
@@ -102,7 +104,9 @@ class DebouncingResourceDownloader {
               queryToRule[rule.param] = rule
             } else if let url = urlComponents.url, let etld = url.baseDomain {
               // We put this etld and rule to our B bucket
-              etldToRule[etld] = (rule, pattern)
+              var relevantPatterns = etldToRelevantPatterns[etld] ?? []
+              relevantPatterns.append(pattern)
+              etldToRelevantPatterns[etld] = relevantPatterns
             } else {
               // Everything else goes to our C bucket
               // For the time being this set only encompases patterns without a host
@@ -113,6 +117,13 @@ class DebouncingResourceDownloader {
             continue
           }
         }
+
+        // Add or append the entry for each etld
+        for (etld1, relevantPatterns) in etldToRelevantPatterns {
+          var entries = etldToRule[etld1] ?? []
+          entries.append((rule, relevantPatterns))
+          etldToRule[etld1] = entries
+        }
       }
 
       self.etldToRule = etldToRule
@@ -120,7 +131,20 @@ class DebouncingResourceDownloader {
       self.otherRules = otherRules
     }
 
-    /// Get a possible redirect url for the given URL and the given matchers.
+    /// Get redirect url recursively by continually applying the matcher rules to each url returned until we have no more redirects.
+    func redirectURLRecursively(from url: URL) -> URL? {
+      var redirectingURL = url
+      var result: URL?
+
+      while let nextURL = redirectURLOnce(from: redirectingURL) {
+        redirectingURL = nextURL
+        result = nextURL
+      }
+
+      return result
+    }
+
+    /// Get a possible redirect url for the given URL and the given matchers. Will only get the next redirect url.
     ///
     /// This code uses the patterns in the given matchers to determine if a redirect action is required.
     /// If it is, a redirect url will be returned provided we can extract it from the url
@@ -131,15 +155,15 @@ class DebouncingResourceDownloader {
     /// (As an optimization, we only need to check the pattern the `eTLD+1` was extracted from and not the whole include list)
     /// 3. If any of the query params (the keys) in the map from #4 above are in URL we might navigate to, apply the corresponding rule
     /// 4. Apply all the rules from bucket C
-    func redirectURL(from url: URL) -> URL? {
+    func redirectURLOnce(from url: URL) -> URL? {
       // Extract the redirect URL
       let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
       guard let queryItems = components?.queryItems else { return nil }
       guard let etld1 = url.baseDomain else { return nil }
 
-      if let entry = etldToRule[etld1] {
+      if let entries = etldToRule[etld1] {
         guard
-          url.matches(pattern: entry.relevantPattern),
+          let entry = entries.first(where: { url.matches(any: $0.relevantPatterns) }),
           !entry.rule.isExcluded(url: url),
           let queryItem = queryItems.first(where: { $0.name == entry.rule.param })
         else {
@@ -330,12 +354,12 @@ class DebouncingResourceDownloader {
     }
   }
 
-  /// Get a possible redirect url for the given URL.
+  /// Get a possible redirect url for the given URL. Does this
   ///
   /// This code uses the downloade `Matcher` to determine if a redirect action is required.
   /// If it is, a redirect url will be returned provided we can extract it from the url.
   func redirectURL(for url: URL) -> URL? {
-    return matcher?.redirectURL(from: url)
+    return matcher?.redirectURLRecursively(from: url)
   }
 
   /// Load data from disk  given by the folderName and fileName
@@ -418,5 +442,9 @@ extension URL {
       log.error("Cannot parse pattern `\(pattern)`. Got status `\(parseResult)`")
       return false
     }
+  }
+
+  func matches(any patterns: [String]) -> Bool {
+    return patterns.contains(where: { self.matches(pattern: $0) })
   }
 }
