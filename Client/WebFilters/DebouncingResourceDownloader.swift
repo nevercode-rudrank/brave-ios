@@ -132,6 +132,7 @@ class DebouncingResourceDownloader {
     }
 
     /// Get redirect url recursively by continually applying the matcher rules to each url returned until we have no more redirects.
+    /// Only handles `http` and `https` schemes.
     func redirectURLRecursively(from url: URL) -> URL? {
       var redirectingURL = url
       var result: URL?
@@ -145,6 +146,7 @@ class DebouncingResourceDownloader {
     }
 
     /// Get a possible redirect url for the given URL and the given matchers. Will only get the next redirect url.
+    /// Only handles `http` and `https` schemes.
     ///
     /// This code uses the patterns in the given matchers to determine if a redirect action is required.
     /// If it is, a redirect url will be returned provided we can extract it from the url
@@ -157,9 +159,14 @@ class DebouncingResourceDownloader {
     /// 4. Apply all the rules from bucket C
     func redirectURLOnce(from url: URL) -> URL? {
       // Extract the redirect URL
-      let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-      guard let queryItems = components?.queryItems else { return nil }
+      guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else { return nil }
+      guard let queryItems = components.queryItems else { return nil }
       guard let etld1 = url.baseDomain else { return nil }
+
+      guard components.scheme == "http" || components.scheme == "https" else {
+        // We only want to handle these two schemes similar to the implementation in `brave-core`
+        return nil
+      }
 
       if let entries = etldToRule[etld1] {
         guard
