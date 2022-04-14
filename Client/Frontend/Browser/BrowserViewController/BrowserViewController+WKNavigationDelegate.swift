@@ -201,6 +201,20 @@ extension BrowserViewController: WKNavigationDelegate {
       // We instead go directly to the redirect request
       var modifiedRequest = navigationAction.request
       modifiedRequest.url = redirectURL
+
+      if url.origin != redirectURL.origin {
+        // We only include trusted headers on cross origin requests
+        // TODO: @JS Look at possibly getting a list of trusted headers from brave-core
+        // For now we only allow the `Referrer`. The browser will add the rest.
+        modifiedRequest = URLRequest(url: redirectURL)
+        let trustedHeaderKeys = Set(["Referer"])
+
+        for (headerKey, headerValue) in navigationAction.request.allHTTPHeaderFields ?? [:] {
+          guard trustedHeaderKeys.contains(headerKey) else { continue }
+          modifiedRequest.setValue(headerValue, forHTTPHeaderField: headerKey)
+        }
+      }
+
       tab?.loadRequest(modifiedRequest)
     }
 
