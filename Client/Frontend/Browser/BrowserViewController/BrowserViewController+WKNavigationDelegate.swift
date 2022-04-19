@@ -191,28 +191,23 @@ extension BrowserViewController: WKNavigationDelegate {
     )
 
     // Debouncing logic
-    // Handle debouncing for main frame only
-    if domainForRequestURL.isShieldExpected(.AdblockAndTp, considerAllShieldsOption: true),
+    // Handle debouncing for main frame only and only if the site (etld+1) changes
+    if let currentURL = tab?.webView?.url, currentURL.baseDomain != url.baseDomain,
+       domainForRequestURL.isShieldExpected(.AdblockAndTp, considerAllShieldsOption: true),
        navigationAction.targetFrame?.isMainFrame == true,
        let redirectURL = DebouncingResourceDownloader.shared.redirectURL(for: url) {
       // Cancel the original request. We don't want it to load as it's tracking us
       decisionHandler(.cancel, preferences)
 
-      // We instead go directly to the redirect request
-      var modifiedRequest = navigationAction.request
-      modifiedRequest.url = redirectURL
+      // We only include trusted headers on cross origin requests
+      // TODO: @JS Look at possibly getting a list of trusted headers from brave-core
+      // For now we only allow the `Referrer`. The browser will add the rest.
+      var modifiedRequest = URLRequest(url: redirectURL)
+      let trustedHeaderKeys = Set(["Referer"])
 
-      if url.origin != redirectURL.origin {
-        // We only include trusted headers on cross origin requests
-        // TODO: @JS Look at possibly getting a list of trusted headers from brave-core
-        // For now we only allow the `Referrer`. The browser will add the rest.
-        modifiedRequest = URLRequest(url: redirectURL)
-        let trustedHeaderKeys = Set(["Referer"])
-
-        for (headerKey, headerValue) in navigationAction.request.allHTTPHeaderFields ?? [:] {
-          guard trustedHeaderKeys.contains(headerKey) else { continue }
-          modifiedRequest.setValue(headerValue, forHTTPHeaderField: headerKey)
-        }
+      for (headerKey, headerValue) in navigationAction.request.allHTTPHeaderFields ?? [:] {
+        guard trustedHeaderKeys.contains(headerKey) else { continue }
+        modifiedRequest.setValue(headerValue, forHTTPHeaderField: headerKey)
       }
 
       tab?.loadRequest(modifiedRequest)
