@@ -94,19 +94,15 @@ class DebouncingResourceDownloader {
 
           switch parseResult {
           case .success:
-            let patternHost = urlPattern.host
-            var urlComponents = URLComponents()
-            urlComponents.host = patternHost
-
             if urlPattern.isMatchingAllURLs {
               // We put this query param and rule to our A bucket
               // This seems to be an empty list for now
               queryToRule[rule.param] = rule
-            } else if let url = urlComponents.url, let etld = url.baseDomain {
+            } else if let etld1 = urlPattern.baseDomain {
               // We put this etld and rule to our B bucket
-              var relevantPatterns = etldToRelevantPatterns[etld] ?? []
+              var relevantPatterns = etldToRelevantPatterns[etld1] ?? []
               relevantPatterns.append(pattern)
-              etldToRelevantPatterns[etld] = relevantPatterns
+              etldToRelevantPatterns[etld1] = relevantPatterns
             } else {
               // Everything else goes to our C bucket
               // For the time being this set only encompases patterns without a host
@@ -425,5 +421,12 @@ extension URL {
 
   func matches(any patterns: [String]) -> Bool {
     return patterns.contains(where: { self.matches(pattern: $0) })
+  }
+}
+
+private extension URLPattern {
+  var baseDomain: String? {
+    let result = NSURL.domainAndRegistry(host: host)
+    return result.isEmpty ? nil : result
   }
 }
