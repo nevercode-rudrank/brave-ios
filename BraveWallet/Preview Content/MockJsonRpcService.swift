@@ -11,7 +11,6 @@ import BraveCore
 ///
 /// - note: Do not use this directly, use ``NetworkStore.previewStore``
 class MockJsonRpcService: BraveWalletJsonRpcService {
-  
   private var chainId: String = BraveWallet.MainnetChainId
   private var networks: [BraveWallet.NetworkInfo] = [.mainnet, .rinkeby, .ropsten]
   private var networkURL: URL?
@@ -105,14 +104,14 @@ class MockJsonRpcService: BraveWalletJsonRpcService {
     completion("", .success, "")
   }
   
-  func addEthereumChain(forOrigin chain: BraveWallet.NetworkInfo, origin: URL, completion: @escaping (String, BraveWallet.ProviderError, String) -> Void) {
+  func addEthereumChain(forOrigin chain: BraveWallet.NetworkInfo, origin: URLOrigin, completion: @escaping (String, BraveWallet.ProviderError, String) -> Void) {
     completion("", .chainDisconnected, "Error Message")
   }
   
   func addEthereumChainRequestCompleted(_ chainId: String, approved: Bool) {
   }
   
-  func notifySwitchChainRequestProcessed(_ approved: Bool, origin: URL) {
+  func notifySwitchChainRequestProcessed(_ approved: Bool, origin: URLOrigin) {
   }
   
   func setCustomNetworkForTesting(_ chainId: String, coin: BraveWallet.CoinType, providerUrl: URL) {
@@ -126,8 +125,8 @@ class MockJsonRpcService: BraveWalletJsonRpcService {
     completion("", 0, "", .internalError, "Error Message")
   }
   
-  func erc721Owner(of contract: String, tokenId: String, chainId: String, completion: @escaping (String, BraveWallet.ProviderError, String) -> Void) {
-    completion("", .internalError, "erc721Owner error")
+  func erc1155TokenBalance(_ contractAddress: String, tokenId: String, accountAddress: String, chainId: String, completion: @escaping (String, BraveWallet.ProviderError, String) -> Void) {
+    completion("", .internalError, "")
   }
 }
 
