@@ -46,6 +46,7 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *npm
       - *installBrew
       - *bootstrapScript
       - *runTests
@@ -57,8 +58,13 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *npm
       - *installBrew
       - *bootstrapScript
+      - name: Add symlink 
+        script: | 
+          sudo ln -s $(which npm) /usr/local/bin/npm
+          sudo ln -s $(which node) /usr/local/bin/node
       - name: Run tests
         script: |
           set -o pipefail
