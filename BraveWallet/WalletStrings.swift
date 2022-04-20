@@ -2022,7 +2022,21 @@ extension Strings {
       tableName: "BraveWallet",
       bundle: .braveWallet,
       value: "Open wallet in full screen",
-      comment: "The label read out when a user is using VoiceOver and highlights the two-arrow button on the wallet panel top left corner."
+      comment: "The label read out when a user is using VoiceOver and highlights the vertical two-arrow button on the wallet panel top left corner."
+    )
+    public static let walletPanelBuySendSwapAccessibilityLabel = NSLocalizedString(
+      "wallet.walletPanelBuySendSwapAccessibilityLabel",
+      tableName: "BraveWallet",
+      bundle: .braveWallet,
+      value: "Open buy, send, swap",
+      comment: "The label read out when a user is using VoiceOver and highlights the horizontal two-arrow button on the wallet panel bottom left corner."
+    )
+    public static let walletPanelTxHistoryAccessibilityLabel = NSLocalizedString(
+      "wallet.walletPanelTxHistoryAccessibilityLabel",
+      tableName: "BraveWallet",
+      bundle: .braveWallet,
+      value: "Open transaction history",
+      comment: "The label read out when a user is using VoiceOver and highlights the timer icon button on the wallet panel bottom right corner."
     )
   }
 }

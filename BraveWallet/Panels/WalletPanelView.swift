@@ -147,6 +147,7 @@ struct WalletPanelView: View {
   @Environment(\.pixelLength) private var pixelLength
   @Environment(\.sizeCategory) private var sizeCategory
   @ScaledMetric private var blockieSize = 54
+  private let maxBlockieSize: CGFloat = 108
   
   private let currencyFormatter = NumberFormatter().then {
     $0.numberStyle = .currency
@@ -173,6 +174,7 @@ struct WalletPanelView: View {
       .clipShape(Capsule())
       .contentShape(Capsule())
     }
+    .accessibilityElement(children: .combine)
   }
   
   private var networkPickerButton: some View {
@@ -195,6 +197,8 @@ struct WalletPanelView: View {
       .clipShape(Capsule())
       .contentShape(Capsule())
     }
+    .accessibilityLabel(Strings.Wallet.selectedNetworkAccessibilityLabel)
+    .accessibilityValue(networkStore.selectedChain.shortChainName)
   }
   
   var body: some View {
@@ -252,7 +256,7 @@ struct WalletPanelView: View {
               presentWalletWithContext(.accountSelection)
             } label: {
               Blockie(address: keyringStore.selectedAccount.address)
-                .frame(width: blockieSize, height: blockieSize)
+                .frame(width: min(blockieSize, maxBlockieSize), height: min(blockieSize, maxBlockieSize))
                 .overlay(
                   Circle().strokeBorder(lineWidth: 2, antialiased: true)
                 )
@@ -269,6 +273,13 @@ struct WalletPanelView: View {
               Text(keyringStore.selectedAccount.address.truncatedAddress)
                 .font(.callout)
             }
+            .multilineTextAlignment(.center)
+          }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel(Strings.Wallet.selectedAccountAccessibilityLabel)
+          .accessibilityValue("\(keyringStore.selectedAccount.name), \(keyringStore.selectedAccount.address.truncatedAddress)")
+          .accessibilityAction {
+            presentWalletWithContext(.accountSelection)
           }
           VStack(spacing: 4) {
             let nativeAsset = accountActivityStore.assets.first(where: { $0.token.symbol == networkStore.selectedChain.symbol })
@@ -278,6 +289,8 @@ struct WalletPanelView: View {
               .font(.callout)
           }
           .padding(.vertical)
+          .multilineTextAlignment(.center)
+          .accessibilityElement(children: .combine)
           HStack(spacing: 0) {
             Button {
               presentBuySendSwap()
@@ -287,6 +300,7 @@ struct WalletPanelView: View {
                 .padding(.horizontal, 44)
                 .padding(.vertical, 8)
             }
+            .accessibilityLabel(Strings.Wallet.walletPanelBuySendSwapAccessibilityLabel)
             Color.white.opacity(0.6)
               .frame(width: pixelLength)
             Button {
@@ -297,6 +311,7 @@ struct WalletPanelView: View {
                 .padding(.horizontal, 44)
                 .padding(.vertical, 8)
             }
+            .accessibilityLabel(Strings.Wallet.walletPanelTxHistoryAccessibilityLabel)
           }
           .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Color.white.opacity(0.6), style: .init(lineWidth: pixelLength)))
         }
