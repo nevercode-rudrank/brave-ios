@@ -1,0 +1,51 @@
+definitions:
+  env_versions: &env_versions
+    xcode: 13.3
+  triggering:
+    push: &push_event
+      events:
+        - push
+  scripts:
+    - &bootstrapScript
+      name: Run bootstrap script
+      script: ./bootstrap.sh --ci
+    - &runTests
+      name: Run tests
+      script: |
+        set -o pipefail
+        fastlane ios test
+
+workflows:
+  ios-mac-pro-workflow:
+    name: Mac Pro Workflow
+    instance_type: mac_pro
+    environment:
+      <<: *env_versions
+    triggering:
+      <<: *push_event
+    scripts:
+      - *bootstrapScript
+      - *runTests
+  ios-m1-rosetta-workflow:
+    name: M1 Rosetta Workflow
+    instance_type: mac_mini_m1
+    environment:
+      <<: *env_versions
+    triggering:
+      <<: *push_event
+    scripts:
+      - *bootstrapScript
+      - *runTests
+  ios-m1-silicon-workflow:
+    name: M1 Silicon Workflow
+    instance_type: mac_mini_m1
+    environment:
+      <<: *env_versions
+    triggering:
+      <<: *push_event
+    scripts:
+      - *bootstrapScript
+      - name: Run tests
+        script: |
+          set -o pipefail
+          arch -arm64 fastlane ios test
