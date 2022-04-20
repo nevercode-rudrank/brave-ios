@@ -410,116 +410,116 @@ class TabSessionTests: XCTestCase {
     wait(for: [dataStoreExpectation], timeout: maxTimeout)
   }
 
-  func testTabsPrivateToNormal() {
-    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
-    var webViewNavigationAdapter = WebViewNavigationAdapter()
+//  func testTabsPrivateToNormal() {
+//    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
+//    var webViewNavigationAdapter = WebViewNavigationAdapter()
+//
+//    destroyData {
+//      let url = URL(string: "https://www.insanelymac.com")!
+//      let otherURL = URL(string: "https://www.macrumors.com")!
+//
+//      self.tabManager.addTabsForURLs([url], zombie: false, isPrivate: true)
+//      if self.tabManager.allTabs.count != 1 {
+//        XCTFail("Error: Not all Tabs are created equally")
+//        return dataStoreExpectation.fulfill()
+//      }
+//
+//      let group = DispatchGroup()
+//      for tab in self.tabManager.allTabs {
+//        guard let webView = tab.webView else {
+//          XCTFail("WebView is not created yet")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if webView.configuration.websiteDataStore.isPersistent {
+//          XCTFail("Private Tab is storing data persistently!")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        group.enter()
+//      }
+//
+//      webViewNavigationAdapter = WebViewNavigationAdapter(
+//        didFailListener: { _ in
+//          group.leave()
+//        },
+//        didFinishListener: {
+//          group.leave()
+//        })
+//      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//
+//      // All requests finished loading.. switch to normal mode.. check the cookies..
+//      group.notify(queue: .main) {
+//        let group = DispatchGroup()
+//        webViewNavigationAdapter = WebViewNavigationAdapter(
+//          didFailListener: { _ in
+//            group.leave()
+//          },
+//          didFinishListener: {
+//            group.leave()
+//          })
+//
+//        self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//        self.tabManager.addTabsForURLs([otherURL], zombie: false, isPrivate: false)
+//
+//        // When the tab manager switches to normal mode from private
+//        // It should kill all private tabs..
+//        if !self.tabManager.tabs(withType: .private).isEmpty {
+//          XCTFail("Error: Private tabs not destroyed when switching to normal mode!")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if self.tabManager.tabs(withType: .regular).isEmpty {
+//          XCTFail("Error: Normal tab not created")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        for tab in self.tabManager.allTabs {
+//          guard let webView = tab.webView else {
+//            XCTFail("WebView is not created yet")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          if webView.configuration.websiteDataStore.isPersistent == false {
+//            XCTFail("Normal Tab is not storing data persistently!")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          group.enter()
+//        }
+//
+//        group.notify(queue: .main) {
+//          let group = DispatchGroup()
+//          for tab in self.tabManager.tabs(withType: .regular) {
+//            guard let webView = tab.webView else {
+//              XCTFail("Webview died unexpectedly")
+//              return dataStoreExpectation.fulfill()
+//            }
+//
+//            group.enter()
+//            webView.configuration.websiteDataStore.fetchDataRecords(
+//              ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+//              completionHandler: { records in
+//                XCTAssertFalse(records.isEmpty, "Error: Data Store not persistent in normal mode!")
+//
+//                let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
+//                let urlNames = Set<String>([url.host ?? "FailedTestDomain"])
+//
+//                XCTAssertFalse(urlNames.isSubset(of: recordNames), "Data Store leaking from private tab to normal tab!")
+//
+//                group.leave()
+//              })
+//          }
+//
+//          group.notify(queue: .main) {
+//            dataStoreExpectation.fulfill()
+//          }
+//        }
+//      }
+//    }
 
-    destroyData {
-      let url = URL(string: "https://www.insanelymac.com")!
-      let otherURL = URL(string: "https://www.macrumors.com")!
-
-      self.tabManager.addTabsForURLs([url], zombie: false, isPrivate: true)
-      if self.tabManager.allTabs.count != 1 {
-        XCTFail("Error: Not all Tabs are created equally")
-        return dataStoreExpectation.fulfill()
-      }
-
-      let group = DispatchGroup()
-      for tab in self.tabManager.allTabs {
-        guard let webView = tab.webView else {
-          XCTFail("WebView is not created yet")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if webView.configuration.websiteDataStore.isPersistent {
-          XCTFail("Private Tab is storing data persistently!")
-          return dataStoreExpectation.fulfill()
-        }
-
-        group.enter()
-      }
-
-      webViewNavigationAdapter = WebViewNavigationAdapter(
-        didFailListener: { _ in
-          group.leave()
-        },
-        didFinishListener: {
-          group.leave()
-        })
-      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-
-      // All requests finished loading.. switch to normal mode.. check the cookies..
-      group.notify(queue: .main) {
-        let group = DispatchGroup()
-        webViewNavigationAdapter = WebViewNavigationAdapter(
-          didFailListener: { _ in
-            group.leave()
-          },
-          didFinishListener: {
-            group.leave()
-          })
-
-        self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-        self.tabManager.addTabsForURLs([otherURL], zombie: false, isPrivate: false)
-
-        // When the tab manager switches to normal mode from private
-        // It should kill all private tabs..
-        if !self.tabManager.tabs(withType: .private).isEmpty {
-          XCTFail("Error: Private tabs not destroyed when switching to normal mode!")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if self.tabManager.tabs(withType: .regular).isEmpty {
-          XCTFail("Error: Normal tab not created")
-          return dataStoreExpectation.fulfill()
-        }
-
-        for tab in self.tabManager.allTabs {
-          guard let webView = tab.webView else {
-            XCTFail("WebView is not created yet")
-            return dataStoreExpectation.fulfill()
-          }
-
-          if webView.configuration.websiteDataStore.isPersistent == false {
-            XCTFail("Normal Tab is not storing data persistently!")
-            return dataStoreExpectation.fulfill()
-          }
-
-          group.enter()
-        }
-
-        group.notify(queue: .main) {
-          let group = DispatchGroup()
-          for tab in self.tabManager.tabs(withType: .regular) {
-            guard let webView = tab.webView else {
-              XCTFail("Webview died unexpectedly")
-              return dataStoreExpectation.fulfill()
-            }
-
-            group.enter()
-            webView.configuration.websiteDataStore.fetchDataRecords(
-              ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-              completionHandler: { records in
-                XCTAssertFalse(records.isEmpty, "Error: Data Store not persistent in normal mode!")
-
-                let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
-                let urlNames = Set<String>([url.host ?? "FailedTestDomain"])
-
-                XCTAssertFalse(urlNames.isSubset(of: recordNames), "Data Store leaking from private tab to normal tab!")
-
-                group.leave()
-              })
-          }
-
-          group.notify(queue: .main) {
-            dataStoreExpectation.fulfill()
-          }
-        }
-      }
-    }
-
-    wait(for: [dataStoreExpectation], timeout: maxTimeout)
-  }
+//    wait(for: [dataStoreExpectation], timeout: maxTimeout)
+//  }
 
   func testIsSecretTokenAvailable() {
     let url = URL(string: "https://www.brave.com")!
@@ -665,114 +665,115 @@ class TabSessionTests: XCTestCase {
 
     waitForExpectations(timeout: 60, handler: nil)
   }
-
-  func testTabsNormalToPrivate() {
-    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
-    var webViewNavigationAdapter = WebViewNavigationAdapter()
-
-    destroyData {
-      let url = URL(string: "https://twitter.com")!
-      let otherURL = URL(string: "https://instagram.com")!
-
-      self.tabManager.addTabsForURLs([url], zombie: false, isPrivate: false)
-      if self.tabManager.allTabs.count != 1 {
-        XCTFail("Error: Not all Tabs are created equally")
-        return dataStoreExpectation.fulfill()
-      }
-
-      let group = DispatchGroup()
-      for tab in self.tabManager.allTabs {
-        guard let webView = tab.webView else {
-          XCTFail("WebView is not created yet")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if !webView.configuration.websiteDataStore.isPersistent {
-          XCTFail("Normal Tab is not storing data persistently!")
-          return dataStoreExpectation.fulfill()
-        }
-
-        group.enter()
-      }
-
-      webViewNavigationAdapter = WebViewNavigationAdapter(
-        didFailListener: { _ in
-          group.leave()
-        },
-        didFinishListener: {
-          group.leave()
-        })
-      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-
-      // All requests finished loading.. switch to private mode.. check the cookies..
-      group.notify(queue: .main) {
-        let group = DispatchGroup()
-        webViewNavigationAdapter = WebViewNavigationAdapter(
-          didFailListener: { _ in
-            group.leave()
-          },
-          didFinishListener: {
-            group.leave()
-          })
-
-        self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-        self.tabManager.addTabsForURLs([otherURL], zombie: false, isPrivate: true)
-
-        // When the tab manager switches to private mode from normal
-        // It should keep both private and normal tabs
-        if self.tabManager.tabs(withType: .private).isEmpty {
-          XCTFail("Error: Private tabs not created")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if self.tabManager.tabs(withType: .regular).isEmpty {
-          XCTFail("Error: Normal tab not created")
-          return dataStoreExpectation.fulfill()
-        }
-
-        for tab in self.tabManager.tabs(withType: .private) {
-          guard let webView = tab.webView else {
-            XCTFail("WebView is not created yet")
-            return dataStoreExpectation.fulfill()
-          }
-
-          if webView.configuration.websiteDataStore.isPersistent {
-            XCTFail("Private Tab is storing data persistently!")
-            return dataStoreExpectation.fulfill()
-          }
-
-          group.enter()
-        }
-
-        group.notify(queue: .main) {
-          let group = DispatchGroup()
-
-          for tab in self.tabManager.tabs(withType: .private) {
-            guard let webView = tab.webView else {
-              XCTFail("WebView unexpectedly died")
-              return dataStoreExpectation.fulfill()
-            }
-
-            group.enter()
-            webView.configuration.websiteDataStore.fetchDataRecords(
-              ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-              completionHandler: { records in
-                let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
-                let urlNames = Set<String>([url.host ?? "FailedTestDomain"])
-
-                XCTAssertFalse(urlNames.isSubset(of: recordNames), "Data Store leaking from normal tab to private tab!")
-
-                group.leave()
-              })
-          }
-
-          group.notify(queue: .main) {
-            dataStoreExpectation.fulfill()
-          }
-        }
-      }
-    }
-
-    wait(for: [dataStoreExpectation], timeout: maxTimeout)
-  }
 }
+//
+//  func testTabsNormalToPrivate() {
+//    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
+//    var webViewNavigationAdapter = WebViewNavigationAdapter()
+//
+//    destroyData {
+//      let url = URL(string: "https://twitter.com")!
+//      let otherURL = URL(string: "https://instagram.com")!
+//
+//      self.tabManager.addTabsForURLs([url], zombie: false, isPrivate: false)
+//      if self.tabManager.allTabs.count != 1 {
+//        XCTFail("Error: Not all Tabs are created equally")
+//        return dataStoreExpectation.fulfill()
+//      }
+//
+//      let group = DispatchGroup()
+//      for tab in self.tabManager.allTabs {
+//        guard let webView = tab.webView else {
+//          XCTFail("WebView is not created yet")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if !webView.configuration.websiteDataStore.isPersistent {
+//          XCTFail("Normal Tab is not storing data persistently!")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        group.enter()
+//      }
+//
+//      webViewNavigationAdapter = WebViewNavigationAdapter(
+//        didFailListener: { _ in
+//          group.leave()
+//        },
+//        didFinishListener: {
+//          group.leave()
+//        })
+//      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//
+//      // All requests finished loading.. switch to private mode.. check the cookies..
+//      group.notify(queue: .main) {
+//        let group = DispatchGroup()
+//        webViewNavigationAdapter = WebViewNavigationAdapter(
+//          didFailListener: { _ in
+//            group.leave()
+//          },
+//          didFinishListener: {
+//            group.leave()
+//          })
+//
+//        self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//        self.tabManager.addTabsForURLs([otherURL], zombie: false, isPrivate: true)
+//
+//        // When the tab manager switches to private mode from normal
+//        // It should keep both private and normal tabs
+//        if self.tabManager.tabs(withType: .private).isEmpty {
+//          XCTFail("Error: Private tabs not created")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if self.tabManager.tabs(withType: .regular).isEmpty {
+//          XCTFail("Error: Normal tab not created")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        for tab in self.tabManager.tabs(withType: .private) {
+//          guard let webView = tab.webView else {
+//            XCTFail("WebView is not created yet")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          if webView.configuration.websiteDataStore.isPersistent {
+//            XCTFail("Private Tab is storing data persistently!")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          group.enter()
+//        }
+//
+//        group.notify(queue: .main) {
+//          let group = DispatchGroup()
+//
+//          for tab in self.tabManager.tabs(withType: .private) {
+//            guard let webView = tab.webView else {
+//              XCTFail("WebView unexpectedly died")
+//              return dataStoreExpectation.fulfill()
+//            }
+//
+//            group.enter()
+//            webView.configuration.websiteDataStore.fetchDataRecords(
+//              ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+//              completionHandler: { records in
+//                let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
+//                let urlNames = Set<String>([url.host ?? "FailedTestDomain"])
+//
+//                XCTAssertFalse(urlNames.isSubset(of: recordNames), "Data Store leaking from normal tab to private tab!")
+//
+//                group.leave()
+//              })
+//          }
+//
+//          group.notify(queue: .main) {
+//            dataStoreExpectation.fulfill()
+//          }
+//        }
+//      }
+//    }
+//
+//    wait(for: [dataStoreExpectation], timeout: maxTimeout)
+//  }
+//}

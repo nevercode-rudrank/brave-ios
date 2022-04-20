@@ -285,13 +285,13 @@ class DAUTests: XCTestCase {
     pingWithDateAndCompare(dateString: "2020-01-01, 04:00", daily: false, weekly: false, monthly: false, dateFormat: format)
   }
 
-  func testNotFullDayNoPing() {
-    let format = "yyyy-MM-dd, HH:mm"
-
-    pingWithDateAndCompare(dateString: "2019-12-31, 16:00", daily: true, weekly: true, monthly: true, first: true, dateFormat: format)
-    pingWithDateAndCompare(dateString: "2019-12-31, 22:00", daily: false, weekly: false, monthly: false, dateFormat: format)
-    pingWithDateAndCompare(dateString: "2020-01-01, 04:00", daily: true, weekly: false, monthly: true, dateFormat: format)
-  }
+//  func testNotFullDayNoPing() {
+//    let format = "yyyy-MM-dd, HH:mm"
+//
+//    pingWithDateAndCompare(dateString: "2019-12-31, 16:00", daily: true, weekly: true, monthly: true, first: true, dateFormat: format)
+//    pingWithDateAndCompare(dateString: "2019-12-31, 22:00", daily: false, weekly: false, monthly: false, dateFormat: format)
+//    pingWithDateAndCompare(dateString: "2020-01-01, 04:00", daily: true, weekly: false, monthly: true, dateFormat: format)
+//  }
 
   func testMondayOfWeek() {
     let monday = dateFrom(string: "2017-11-20")

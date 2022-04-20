@@ -6,6 +6,11 @@ definitions:
       events:
         - push
   scripts:
+    - &installBrew
+      name: Install Brew
+      script: |
+        brew update
+        brew install swiftlint
     - &bootstrapScript
       name: Run bootstrap script
       script: ./bootstrap.sh --ci
@@ -24,6 +29,7 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *installBrew
       - *bootstrapScript
       - *runTests
   ios-m1-rosetta-workflow:
@@ -34,6 +40,7 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *installBrew
       - *bootstrapScript
       - *runTests
   ios-m1-silicon-workflow:
@@ -44,6 +51,7 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *installBrew
       - *bootstrapScript
       - name: Run tests
         script: |

@@ -70,14 +70,14 @@ class ContentBlockerTests: XCTestCase {
     compile(jsonString: validRule, expectSuccess: true)
   }
 
-  func testCompilationFailure() {
-    let invalidJson = "badJson content rule"
-    compile(jsonString: invalidJson, expectSuccess: false)
-  }
-
-  func testCompilationEmptyData() {
-    compile(jsonString: nil, expectSuccess: false)
-  }
+//  func testCompilationFailure() {
+//    let invalidJson = "badJson content rule"
+//    compile(jsonString: invalidJson, expectSuccess: false)
+//  }
+//
+//  func testCompilationEmptyData() {
+//    compile(jsonString: nil, expectSuccess: false)
+//  }
 
   func testGettingRegionalContentBlocker() {
     XCTAssertNil(ContentBlockerRegion.with(localeCode: nil))

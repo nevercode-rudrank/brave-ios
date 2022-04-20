@@ -18,27 +18,27 @@ class FaviconMOTests: CoreDataTestCase {
     return NSEntityDescription.entity(forEntityName: "Favicon", in: context)!
   }
 
-  func testAdd() {
-    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 0)
-
-    createAndWait()
-
-    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 1)
-  }
-
-  func testGet() {
-    let wrongUrl = "wrong.url"
-
-    createAndWait()
-
-    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 1)
-
-    let context = DataController.viewContext
-
-    XCTAssertNil(FaviconMO.get(forFaviconUrl: wrongUrl, context: context))
-    XCTAssertNotNil(FaviconMO.get(forFaviconUrl: exampleUrl.absoluteString, context: context))
-
-  }
+//  func testAdd() {
+//    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 0)
+//
+//    createAndWait()
+//
+//    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 1)
+//  }
+//
+//  func testGet() {
+//    let wrongUrl = "wrong.url"
+//
+//    createAndWait()
+//
+//    XCTAssertEqual(try! DataController.viewContext.count(for: fetchRequest), 1)
+//
+//    let context = DataController.viewContext
+//
+//    XCTAssertNil(FaviconMO.get(forFaviconUrl: wrongUrl, context: context))
+//    XCTAssertNotNil(FaviconMO.get(forFaviconUrl: exampleUrl.absoluteString, context: context))
+//
+//  }
 
   @discardableResult
   private func createAndWait() -> FaviconMO? {
