@@ -133,7 +133,7 @@ class DebouncingResourceDownloader {
 
     /// Get redirect url recursively by continually applying the matcher rules to each url returned until we have no more redirects.
     /// Only handles `http` and `https` schemes.
-    func redirectURLRecursively(from url: URL) -> URL? {
+    func redirectURLAll(from url: URL) -> URL? {
       var redirectingURL = url
       var result: URL?
 
@@ -371,7 +371,7 @@ class DebouncingResourceDownloader {
   /// This code uses the downloade `Matcher` to determine if a redirect action is required.
   /// If it is, a redirect url will be returned provided we can extract it from the url.
   func redirectURL(for url: URL) -> URL? {
-    return matcher?.redirectURLRecursively(from: url)
+    return matcher?.redirectURLAll(from: url)
   }
 
   /// Load data from disk  given by the folderName and fileName
