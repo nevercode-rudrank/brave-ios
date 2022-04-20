@@ -1,11 +1,16 @@
 definitions:
   env_versions: &env_versions
     xcode: 13.3
+    node: v17.4.0
   triggering:
     push: &push_event
       events:
         - push
   scripts:
+    - &npm
+      name: Install npm dependencies
+      script: |
+        npm install
     - &installBrew
       name: Install Brew
       script: |
@@ -29,6 +34,7 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *npm
       - *installBrew
       - *bootstrapScript
       - *runTests
