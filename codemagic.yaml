@@ -1,6 +1,7 @@
 definitions:
   env_versions: &env_versions
     xcode: 13.3
+    node: 12.14.0
   triggering:
     push: &push_event
       events:
