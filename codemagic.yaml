@@ -10,7 +10,7 @@ definitions:
     - &npm
       name: Install npm dependencies
       script: |
-         npm install
+         npm install --package-lock
     - &installBrew
       name: Install Brew
       script: |
@@ -51,6 +51,8 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - *npm
+      - *installBrew
       - *bootstrapScript
       - *runTests
   ios-m1-silicon-workflow:
