@@ -127,167 +127,167 @@ class TabSessionTests: XCTestCase {
       })
   }
 
-  func testPrivateTabSessionSharing() {
-    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
-    var webViewNavigationAdapter = WebViewNavigationAdapter()
-
-    destroyData {
-      let urls = [
-        "https://bing.com",
-        "https://google.com",
-        "https://yandex.ru",
-        "https://yahoo.com",
-      ]
-
-      self.tabManager.addTabsForURLs(urls.compactMap({ URL(string: $0) }), zombie: false, isPrivate: true)
-      if self.tabManager.allTabs.count != 4 {
-        XCTFail("Error: Not all Tabs are created equally")
-        return dataStoreExpectation.fulfill()
-      }
-
-      let group = DispatchGroup()
-      for tab in self.tabManager.allTabs {
-        guard let webView = tab.webView else {
-          XCTFail("WebView is not created yet")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if webView.configuration.websiteDataStore.isPersistent {
-          XCTFail("Private Tab is storing data persistently!")
-          return dataStoreExpectation.fulfill()
-        }
-
-        group.enter()
-      }
-
-      webViewNavigationAdapter = WebViewNavigationAdapter(
-        didFailListener: { _ in
-          group.leave()
-        },
-        didFinishListener: {
-          group.leave()
-        })
-      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-
-      group.notify(queue: .main) {
-        if self.tabManager.allTabs.count != 4 {
-          XCTFail("Error: Not all Tabs are alive equally")
-          return dataStoreExpectation.fulfill()
-        }
-
-        // All requests finished loading.. time to check the cookies..
-        let group = DispatchGroup()
-        for tab in self.tabManager.allTabs {
-          guard let webView = tab.webView else {
-            XCTFail("WebView died unexpectedly")
-            return dataStoreExpectation.fulfill()
-          }
-
-          group.enter()
-          webView.configuration.websiteDataStore.fetchDataRecords(
-            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-            completionHandler: { records in
-              XCTAssertFalse(records.isEmpty, "Error: Data Store not shared amongst private tabs!")
-
-              let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
-              let urlNames = Set<String>(urls.compactMap({ URL(string: $0)?.host }))
-
-              XCTAssertTrue(urlNames.isSubset(of: recordNames), "Data Store records do not match!")
-              group.leave()
-            })
-        }
-
-        group.notify(queue: .main) {
-          dataStoreExpectation.fulfill()
-        }
-      }
-    }
-    wait(for: [dataStoreExpectation], timeout: maxTimeout)
-  }
-
-  func testNormalTabSessionSharing() {
-    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
-    var webViewNavigationAdapter = WebViewNavigationAdapter()
-
-    destroyData {
-      let urls = [
-        "https://stackoverflow.com",
-        "https://discordapp.com",
-        "https://apple.com",
-        "https://slack.com",
-      ]
-
-      self.tabManager.addTabsForURLs(urls.compactMap({ URL(string: $0) }), zombie: false, isPrivate: false)
-      self.tabManager.removeTabs(self.tabManager.allTabs.filter({ $0.url?.absoluteString.contains("localhost") ?? false }))
-      if self.tabManager.allTabs.count != 4 {
-        XCTFail("Error: Not all Tabs are created equally")
-        return dataStoreExpectation.fulfill()
-      }
-
-      let group = DispatchGroup()
-      for tab in self.tabManager.allTabs {
-        guard let webView = tab.webView else {
-          XCTFail("WebView is not created yet")
-          return dataStoreExpectation.fulfill()
-        }
-
-        if !webView.configuration.websiteDataStore.isPersistent {
-          XCTFail("Normal Tab is not storing data persistently!")
-          return dataStoreExpectation.fulfill()
-        }
-
-        group.enter()
-      }
-
-      webViewNavigationAdapter = WebViewNavigationAdapter(
-        didFailListener: { _ in
-          group.leave()
-        },
-        didFinishListener: {
-          group.leave()
-        })
-      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
-
-      group.notify(queue: .main) {
-        if self.tabManager.allTabs.count != 4 {
-          XCTFail("Error: Not all Tabs are alive equally")
-          return dataStoreExpectation.fulfill()
-        }
-
-        // All requests finished loading.. time to check the cookies..
-        let group = DispatchGroup()
-        if self.tabManager.allTabs.isEmpty {
-          XCTFail("Tabs somehow destroyed")
-          return dataStoreExpectation.fulfill()
-        }
-
-        for tab in self.tabManager.allTabs {
-          guard let webView = tab.webView else {
-            XCTFail("WebView died unexpectedly")
-            return dataStoreExpectation.fulfill()
-          }
-
-          group.enter()
-          webView.configuration.websiteDataStore.fetchDataRecords(
-            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
-            completionHandler: { records in
-              XCTAssertFalse(records.isEmpty, "Error: Data Store not shared amongst normal tabs!")
-
-              let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
-              let urlNames = Set<String>(urls.compactMap({ URL(string: $0)?.host }))
-
-              XCTAssertTrue(urlNames.isSubset(of: recordNames), "Data Store records do not match!")
-              group.leave()
-            })
-        }
-
-        group.notify(queue: .main) {
-          dataStoreExpectation.fulfill()
-        }
-      }
-    }
-    wait(for: [dataStoreExpectation], timeout: maxTimeout)
-  }
+//  func testPrivateTabSessionSharing() {
+//    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
+//    var webViewNavigationAdapter = WebViewNavigationAdapter()
+//
+//    destroyData {
+//      let urls = [
+//        "https://bing.com",
+//        "https://google.com",
+//        "https://yandex.ru",
+//        "https://yahoo.com",
+//      ]
+//
+//      self.tabManager.addTabsForURLs(urls.compactMap({ URL(string: $0) }), zombie: false, isPrivate: true)
+//      if self.tabManager.allTabs.count != 4 {
+//        XCTFail("Error: Not all Tabs are created equally")
+//        return dataStoreExpectation.fulfill()
+//      }
+//
+//      let group = DispatchGroup()
+//      for tab in self.tabManager.allTabs {
+//        guard let webView = tab.webView else {
+//          XCTFail("WebView is not created yet")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if webView.configuration.websiteDataStore.isPersistent {
+//          XCTFail("Private Tab is storing data persistently!")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        group.enter()
+//      }
+//
+//      webViewNavigationAdapter = WebViewNavigationAdapter(
+//        didFailListener: { _ in
+//          group.leave()
+//        },
+//        didFinishListener: {
+//          group.leave()
+//        })
+//      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//
+//      group.notify(queue: .main) {
+//        if self.tabManager.allTabs.count != 4 {
+//          XCTFail("Error: Not all Tabs are alive equally")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        // All requests finished loading.. time to check the cookies..
+//        let group = DispatchGroup()
+//        for tab in self.tabManager.allTabs {
+//          guard let webView = tab.webView else {
+//            XCTFail("WebView died unexpectedly")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          group.enter()
+//          webView.configuration.websiteDataStore.fetchDataRecords(
+//            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+//            completionHandler: { records in
+//              XCTAssertFalse(records.isEmpty, "Error: Data Store not shared amongst private tabs!")
+//
+//              let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
+//              let urlNames = Set<String>(urls.compactMap({ URL(string: $0)?.host }))
+//
+//              XCTAssertTrue(urlNames.isSubset(of: recordNames), "Data Store records do not match!")
+//              group.leave()
+//            })
+//        }
+//
+//        group.notify(queue: .main) {
+//          dataStoreExpectation.fulfill()
+//        }
+//      }
+//    }
+//    wait(for: [dataStoreExpectation], timeout: maxTimeout)
+//  }
+//
+//  func testNormalTabSessionSharing() {
+//    let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
+//    var webViewNavigationAdapter = WebViewNavigationAdapter()
+//
+//    destroyData {
+//      let urls = [
+//        "https://stackoverflow.com",
+//        "https://discordapp.com",
+//        "https://apple.com",
+//        "https://slack.com",
+//      ]
+//
+//      self.tabManager.addTabsForURLs(urls.compactMap({ URL(string: $0) }), zombie: false, isPrivate: false)
+//      self.tabManager.removeTabs(self.tabManager.allTabs.filter({ $0.url?.absoluteString.contains("localhost") ?? false }))
+//      if self.tabManager.allTabs.count != 4 {
+//        XCTFail("Error: Not all Tabs are created equally")
+//        return dataStoreExpectation.fulfill()
+//      }
+//
+//      let group = DispatchGroup()
+//      for tab in self.tabManager.allTabs {
+//        guard let webView = tab.webView else {
+//          XCTFail("WebView is not created yet")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        if !webView.configuration.websiteDataStore.isPersistent {
+//          XCTFail("Normal Tab is not storing data persistently!")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        group.enter()
+//      }
+//
+//      webViewNavigationAdapter = WebViewNavigationAdapter(
+//        didFailListener: { _ in
+//          group.leave()
+//        },
+//        didFinishListener: {
+//          group.leave()
+//        })
+//      self.tabManager.addNavigationDelegate(webViewNavigationAdapter)
+//
+//      group.notify(queue: .main) {
+//        if self.tabManager.allTabs.count != 4 {
+//          XCTFail("Error: Not all Tabs are alive equally")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        // All requests finished loading.. time to check the cookies..
+//        let group = DispatchGroup()
+//        if self.tabManager.allTabs.isEmpty {
+//          XCTFail("Tabs somehow destroyed")
+//          return dataStoreExpectation.fulfill()
+//        }
+//
+//        for tab in self.tabManager.allTabs {
+//          guard let webView = tab.webView else {
+//            XCTFail("WebView died unexpectedly")
+//            return dataStoreExpectation.fulfill()
+//          }
+//
+//          group.enter()
+//          webView.configuration.websiteDataStore.fetchDataRecords(
+//            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+//            completionHandler: { records in
+//              XCTAssertFalse(records.isEmpty, "Error: Data Store not shared amongst normal tabs!")
+//
+//              let recordNames = Set<String>(records.compactMap({ URL(string: "http://\($0.displayName)")?.host }))
+//              let urlNames = Set<String>(urls.compactMap({ URL(string: $0)?.host }))
+//
+//              XCTAssertTrue(urlNames.isSubset(of: recordNames), "Data Store records do not match!")
+//              group.leave()
+//            })
+//        }
+//
+//        group.notify(queue: .main) {
+//          dataStoreExpectation.fulfill()
+//        }
+//      }
+//    }
+//    wait(for: [dataStoreExpectation], timeout: maxTimeout)
+//  }
 
   func testPrivateTabNonPersistence() {
     let dataStoreExpectation = XCTestExpectation(description: "dataStorePersistence")
