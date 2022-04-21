@@ -10,7 +10,7 @@ definitions:
     - &npm
       name: Install npm dependencies
       script: |
-         npm install --package-lock
+         npm install -g node@12.14.0 --package-lock
     - &installBrew
       name: Install Brew
       script: |
