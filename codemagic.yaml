@@ -1,7 +1,6 @@
 definitions:
   env_versions: &env_versions
     xcode: 13.3
-    node: 12
   triggering:
     push: &push_event
       events:
@@ -10,7 +9,7 @@ definitions:
     - &npm
       name: Install npm dependencies
       script: |
-        npm install
+         npm install -g npm@"12"
     - &installBrew
       name: Install Brew
       script: |
@@ -46,12 +45,6 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
-      - name: nvm hack 
-        script: | 
-         nvm uninstall 14
-         arch -x86_64 zsh 
-         nvm install 14
-         nvm alias default 14
       - *npm
       - *installBrew
       - *bootstrapScript
