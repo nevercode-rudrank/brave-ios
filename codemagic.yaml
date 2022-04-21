@@ -42,7 +42,6 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
-      - *npm
       - *installBrew
       - *bootstrapScript
       - *runTests
@@ -70,4 +69,7 @@ workflows:
       - name: Run tests
         script: |
           set -o pipefail
-          arch -arm64 fastlane ios test
+          arch -arm64 xcode-project run-tests \
+          --project Client.xcodeproj \
+          --scheme Debug \
+          --device "iPhone 8"
