@@ -9,7 +9,7 @@ definitions:
     - &npm
       name: Install npm dependencies
       script: |
-         npm install -g npm@"12"
+         npm install
     - &installBrew
       name: Install Brew
       script: |
@@ -18,6 +18,11 @@ definitions:
     - &bootstrapScript
       name: Run bootstrap script
       script: ./bootstrap.sh --ci
+    - &addsymlink
+      name: Add symlink
+      script: |
+        ln -s $(which npm) /usr/local/bin/npm
+        ln -s $(which node) /usr/local/bin/node
     - &runTests
       name: Run tests
       script: |
@@ -45,8 +50,6 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
-      - *npm
-      - *installBrew
       - *bootstrapScript
       - *runTests
   ios-m1-silicon-workflow:
@@ -57,8 +60,6 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
-      - *npm
-      - *installBrew
       - *bootstrapScript
       - name: Run tests
         script: |
