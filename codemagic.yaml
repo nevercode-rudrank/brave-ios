@@ -1,7 +1,7 @@
 definitions:
   env_versions: &env_versions
     xcode: 13.3
-    node: 14.16.1
+    node: 12
   triggering:
     push: &push_event
       events:
@@ -46,6 +46,12 @@ workflows:
     triggering:
       <<: *push_event
     scripts:
+      - name: nvm hack 
+        script: | 
+         nvm uninstall 14
+         arch -x86_64 zsh 
+         nvm install 14
+         nvm alias default 14
       - *npm
       - *installBrew
       - *bootstrapScript
@@ -61,10 +67,6 @@ workflows:
       - *npm
       - *installBrew
       - *bootstrapScript
-      - name: Add symlink 
-        script: | 
-          sudo ln -s $(which npm) /usr/local/bin/npm
-          sudo ln -s $(which node) /usr/local/bin/node
       - name: Run tests
         script: |
           set -o pipefail
