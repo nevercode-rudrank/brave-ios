@@ -28,7 +28,10 @@ definitions:
       name: Run tests
       script: |
         set -o pipefail
-        fastlane ios test
+        xcode-project run-tests \
+        --workspace Client.xcworkspace \
+        --scheme Debug \
+        --device "iPhone 8"
 
 workflows:
   ios-mac-pro-workflow:
